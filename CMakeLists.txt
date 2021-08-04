@@ -6,11 +6,11 @@ include_directories()
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
-set(Qt5_DIR /usr/local/Cellar/qt@5)
 set(
     EXAMPLES
     shot_test
     correspondence_grouping
+    compute_esf
     compute_shot
     compute_fpfh
     keypoints_extraction
