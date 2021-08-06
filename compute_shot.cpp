@@ -65,11 +65,64 @@ int main (int argc, char *argv[])
 	std::string keypoints_path = argv[2];
 	std::string descriptors_path = argv[3];
 	std::string name = argv[4];
+	
+
+	//
+	// Compute radius
+	//
+
+	PointType p;
+	float xmax, xmin, ymax, ymin, zmax, zmin;
+	xmax = p.x; xmin = p.x;
+	ymax = p.y; ymin = p.y;
+	zmax = p.z; zmin = p.z;
+	int s = model->size();
+	// std::cout << s << std::endl;
+	for (int i=1; i<s; i++){
+		p = model->points[i];
+		if (p.x > xmax){
+			xmax=p.x;
+		}
+		if (p.y > ymax){
+			ymax=p.y;
+		}
+		if (p.z > zmax){
+			zmax=p.z;
+		}
+		if (p.x < xmin){
+			xmin=p.x;
+		}
+		if (p.y < ymin){
+			ymin=p.y;
+		}
+		if (p.z < zmin){
+			zmin=p.z;
+		}
+	}
+	
+	std::cout << " " << xmax << " " << xmin << " "<< ymax <<" "<< ymin << " " << zmax << " " << zmin << std::endl;
+	float radius = std::max({xmax-xmin, ymax-ymin, zmax-zmin})/2;
+	std::cout << "Using a radius of size: " << radius << std::endl;
+	
+	// 
+	// Zero offset 
+	//
+	float xoff = (xmax+xmin)/2;
+	float yoff = (ymax+ymin)/2;
+	float zoff = (zmax+zmin)/2;
+	std::cout << "offsets: " << xoff << " " << yoff << " " << zoff << std::endl;
+
+	for (int i=0; i<s; i++){
+		model->points[i].x -= xoff;
+		model->points[i].y -= yoff;
+		model->points[i].z -= zoff;
+	}
+	
 	//
 	//  Compute Normals
 	//
 	pcl::NormalEstimationOMP<PointType, NormalType> norm_est;
-	norm_est.setKSearch (10);
+	norm_est.setKSearch(10);
 	// Full model
 	norm_est.setInputCloud (model);
 	norm_est.compute (*model_normals);
@@ -78,13 +131,13 @@ int main (int argc, char *argv[])
 	//
 	//  Downsample Clouds to Extract keypoints
 	//
-	pcl::UniformSampling<PointType> uniform_sampling;
-	// Full model
-	uniform_sampling.setInputCloud (model);
-	uniform_sampling.setRadiusSearch (model_ss_);
-	uniform_sampling.filter (*model_keypoints);
-	std::cout << name << " total points: " << model->size () << "; Selected Keypoints: " << model_keypoints->size () << std::endl;
-	saveKeyPoints(model_keypoints, keypoints_path + "/" + name + "_keypoints.csv");
+	// pcl::UniformSampling<PointType> uniform_sampling;
+	// // Full model
+	// uniform_sampling.setInputCloud (model);
+	// uniform_sampling.setRadiusSearch (radius);
+	// uniform_sampling.filter (*model_keypoints);
+	// std::cout << name << " total points: " << model->size () << "; Selected Keypoints: " << model_keypoints->size () << std::endl;
+	// saveKeyPoints(model_keypoints, keypoints_path + "/" + name + "_keypoints.csv");
 
 	//
 	//  Compute Descriptor for keypoints
@@ -94,12 +147,12 @@ int main (int argc, char *argv[])
 	pcl::SHOTEstimationOMP<PointType, NormalType, DescriptorType> descr_est;
 	descr_est.setRadiusSearch (descr_rad_);
 	// Full Model
-	descr_est.setInputCloud (model_keypoints);
+	descr_est.setInputCloud (model);
 	//descr_est.setInputCloud (model);
 	descr_est.setInputNormals (model_normals);
 	descr_est.setSearchSurface (model);
 	descr_est.compute (*model_descriptors);
-	//std::cout << "Descr size: " << model_descriptors->size() << "\n";
+	// std::cout << "Descr size: " << model_descriptors->size() << "\n";
 	//std::cout << "Descr ref frame: " << *descr_est.getInputReferenceFrames() << "\n End\n";
 	//std::cout << "Descr ref frame: " << model_descriptors->points[0] << "\n";
 	saveDescriptors(model_descriptors, descriptors_path + "/" + name + "_descriptors.csv");
