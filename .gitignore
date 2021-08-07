@@ -3,5 +3,5 @@ test/
 .vscode
 .DS_STORE
 datasets
-
+descriptors
 .IDEA

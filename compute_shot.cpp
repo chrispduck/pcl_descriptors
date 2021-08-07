@@ -32,19 +32,18 @@ float descr_rad_ = 1;// (0.02f);
 int main (int argc, char *argv[])
 {
 
-	if(argc < 5 || argc > 7) 
+	if(argc < 4 || argc > 6) 
 	{
 		std::cout << "Incorrect number of parameters: \n";
 		std::cout << " - arg1: pcd model path; \n";
-		std::cout << " - arg2: path to save keypoints; \n";
-		std::cout << " - arg3: path to save descriptors; \n";
-		std::cout << " - arg4: filename to be saved (without extension) \n";
-		std::cout << " - arg5: radius for downsampling. Default = 1.0f \n";
-		std::cout << " - arg6: description radius. Default = 1.0f \n";
+		std::cout << " - arg2: filename to save keypoints; \n";
+		std::cout << " - arg3: filename to save descriptors; \n";
+		std::cout << " - arg4: radius for downsampling. Default = 1.0f \n";
+		std::cout << " - arg5: description radius. Default = 1.0f \n";
 		return 0;
 	}
-	if(argc == 6) model_ss_ = strtod(argv[5], NULL);
-	if(argc == 7) descr_rad_ =  strtod(argv[6], NULL);
+	if(argc == 5) model_ss_ = strtod(argv[5], NULL);
+	if(argc == 6) descr_rad_ =  strtod(argv[6], NULL);
 
 	pcl::PointCloud<PointType>::Ptr model (new pcl::PointCloud<PointType> ());
 	pcl::PointCloud<PointType>::Ptr model_keypoints (new pcl::PointCloud<PointType> ());
@@ -63,9 +62,9 @@ int main (int argc, char *argv[])
 		return (-1);
 	}
 
-	std::string keypoints_path = argv[2];
-	std::string descriptors_path = argv[3];
-	std::string name = argv[4];
+	std::string keypoints_fname = argv[2];
+	std::string descriptors_fname = argv[3];
+	// std::string name = argv[4];
 	
 
 	//
@@ -118,6 +117,9 @@ int main (int argc, char *argv[])
 		model->points[i].y -= yoff;
 		model->points[i].z -= zoff;
 	}
+
+	// // Put in a point at the origin and use the resultants shot descriptor as the GLOBAL descriptor.
+	// model->emplace_back()
 	
 	//
 	//  Compute Normals
@@ -156,7 +158,7 @@ int main (int argc, char *argv[])
 	// std::cout << "Descr size: " << model_descriptors->size() << "\n";
 	//std::cout << "Descr ref frame: " << *descr_est.getInputReferenceFrames() << "\n End\n";
 	//std::cout << "Descr ref frame: " << model_descriptors->points[0] << "\n";
-	saveDescriptors(model_descriptors, descriptors_path + "/" + name + "_descriptors.csv");
+	saveDescriptors(model_descriptors, descriptors_fname + ".csv");
 
 	#if 0
 	// Visualize

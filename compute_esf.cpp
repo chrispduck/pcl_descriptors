@@ -9,12 +9,11 @@ void saveDescriptors(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, std
 int main(int argc, char *argv[])
 {   
     pcl::ESFEstimation<PointType, DescriptorType> ESF;
-    if (argc < 4)
+    if (argc < 3)
     {
         std::cout << "Incorrect number of parameters: \n";
         std::cout << " - arg1: pcd model path; \n";
-        std::cout << " - arg2: path to save descriptors; \n";
-        std::cout << " - arg3: filename to be saved (without extension) \n";
+        std::cout << " - arg2: path to save filename; \n";
         return 0;
     }
 
@@ -31,8 +30,7 @@ int main(int argc, char *argv[])
         return (-1);
     }
 
-    std::string descriptors_path = argv[2];
-    std::string fname = argv[3];
+    std::string fname = argv[2];
 
     ESF.setInputCloud(model);
     ESF.compute(*model_descriptors);
