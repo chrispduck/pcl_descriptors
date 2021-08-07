@@ -2,5 +2,6 @@ build/
 test/
 .vscode
 .DS_STORE
-datasets/
-python/
+datasets
+
+.IDEA

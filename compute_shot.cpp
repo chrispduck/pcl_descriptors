@@ -1,4 +1,5 @@
 #include <pcl/io/pcd_io.h>
+#include <pcl/io/auto_io.h>
 #include <pcl/point_cloud.h>
 #include <pcl/correspondence.h>
 #include <pcl/features/normal_3d_omp.h>
@@ -56,7 +57,7 @@ int main (int argc, char *argv[])
 	//
 	//  Load clouds
 	//
-	if (pcl::io::loadPCDFile (argv[1], *model) < 0)
+	if (pcl::io::load(argv[1], *model) < 0)
 	{
 		std::cout << "Error loading model cloud." << std::endl;
 		return (-1);
