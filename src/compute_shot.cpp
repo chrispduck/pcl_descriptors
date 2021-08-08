@@ -25,6 +25,7 @@ typedef pcl::SHOT352 DescriptorType;
 void saveDescriptors(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, std::string filename);
 void saveKeyPoints(pcl::PointCloud<PointType>::Ptr model_keypoints, std::string filename);
 void invertNormals(pcl::PointCloud<NormalType>::Ptr model_normals);
+float centre(pcl::PointCloud<PointType>::Ptr cloud);
 
 float model_ss_ = 1.0f; //0.5f;// 0.01f; // Radius size for downsampling
 float descr_rad_ = 1;// (0.02f);
@@ -51,8 +52,6 @@ int main (int argc, char *argv[])
 	pcl::PointCloud<NormalType>::Ptr model_normals (new pcl::PointCloud<NormalType> ());
 	pcl::PointCloud<DescriptorType>::Ptr model_descriptors (new pcl::PointCloud<DescriptorType> ());
 
-	//pcl::PointCloud<pcl::VFHSignature308>::Ptr descriptor(new pcl::PointCloud<pcl::VFHSignature308>);
-
 	//
 	//  Load clouds
 	//
@@ -64,69 +63,21 @@ int main (int argc, char *argv[])
 
 	std::string keypoints_fname = argv[2];
 	std::string descriptors_fname = argv[3];
-	// std::string name = argv[4];
 	
+	// Centre the poindcloud
+	float radius = centre(model);
+	// Put in a point at the origin and use the resultants shot descriptor as the GLOBAL descriptor.
+	// std::cout << model->size() << std::endl;
+	model->emplace_back(0,0,0);
+	// std::cout << model->size() << std::endl;
+	// std::cout << model->points[model->size()-1] << std::endl;
 
-	//
-	// Compute radius
-	//
 
-	PointType p;
-	float xmax, xmin, ymax, ymin, zmax, zmin;
-	xmax = p.x; xmin = p.x;
-	ymax = p.y; ymin = p.y;
-	zmax = p.z; zmin = p.z;
-	int s = model->size();
-	// std::cout << s << std::endl;
-	for (int i=1; i<s; i++){
-		p = model->points[i];
-		if (p.x > xmax){
-			xmax=p.x;
-		}
-		if (p.y > ymax){
-			ymax=p.y;
-		}
-		if (p.z > zmax){
-			zmax=p.z;
-		}
-		if (p.x < xmin){
-			xmin=p.x;
-		}
-		if (p.y < ymin){
-			ymin=p.y;
-		}
-		if (p.z < zmin){
-			zmin=p.z;
-		}
-	}
-	
-	std::cout << " " << xmax << " " << xmin << " "<< ymax <<" "<< ymin << " " << zmax << " " << zmin << std::endl;
-	float radius = std::max({xmax-xmin, ymax-ymin, zmax-zmin})/2;
-	std::cout << "Using a radius of size: " << radius << std::endl;
-	
-	// 
-	// Zero offset 
-	//
-	float xoff = (xmax+xmin)/2;
-	float yoff = (ymax+ymin)/2;
-	float zoff = (zmax+zmin)/2;
-	std::cout << "offsets: " << xoff << " " << yoff << " " << zoff << std::endl;
-
-	for (int i=0; i<s; i++){
-		model->points[i].x -= xoff;
-		model->points[i].y -= yoff;
-		model->points[i].z -= zoff;
-	}
-
-	// // Put in a point at the origin and use the resultants shot descriptor as the GLOBAL descriptor.
-	// model->emplace_back()
-	
 	//
 	//  Compute Normals
 	//
 	pcl::NormalEstimationOMP<PointType, NormalType> norm_est;
-	norm_est.setKSearch(10);
-	// Full model
+	norm_est.setKSearch(model->size()-1); //Require ALL points as neighbours
 	norm_est.setInputCloud (model);
 	norm_est.compute (*model_normals);
 	invertNormals(model_normals);
@@ -148,10 +99,8 @@ int main (int argc, char *argv[])
 	// //pcl::PointCloud<RFType>::Ptr model_rf (new pcl::PointCloud<RFType> ());
 	// //descr_est.setInputReferenceFrames(model_rf);
 	pcl::SHOTEstimationOMP<PointType, NormalType, DescriptorType> descr_est;
-	descr_est.setRadiusSearch (descr_rad_);
-	// Full Model
+	descr_est.setRadiusSearch (radius+0.1); // Use radius of maximimum distance from origin + const to ensure all included. 
 	descr_est.setInputCloud (model);
-	//descr_est.setInputCloud (model);
 	descr_est.setInputNormals (model_normals);
 	descr_est.setSearchSurface (model);
 	descr_est.compute (*model_descriptors);
@@ -219,4 +168,63 @@ void invertNormals(pcl::PointCloud<NormalType>::Ptr model_normals)
         model_normals->points[i].normal_y = -model_normals->points[i].normal_y;
         model_normals->points[i].normal_z = -model_normals->points[i].normal_z;
     }
+}
+
+// Centres a pointcloud around the origin
+// returns the maximum distance of a point from the origin.
+float centre(pcl::PointCloud<PointType>::Ptr cloud){
+	//
+	// Compute radius
+	//
+
+	PointType p;
+	float xmax, xmin, ymax, ymin, zmax, zmin;
+	xmax = p.x; xmin = p.x;
+	ymax = p.y; ymin = p.y;
+	zmax = p.z; zmin = p.z;
+	int s = cloud->size();
+	// std::cout << s << std::endl;
+	for (int i=1; i<s; i++){
+		p = cloud->points[i];
+		if (p.x > xmax){
+			xmax=p.x;
+		}
+		if (p.y > ymax){
+			ymax=p.y;
+		}
+		if (p.z > zmax){
+			zmax=p.z;
+		}
+		if (p.x < xmin){
+			xmin=p.x;
+		}
+		if (p.y < ymin){
+			ymin=p.y;
+		}
+		if (p.z < zmin){
+			zmin=p.z;
+		}
+	}
+	
+	// 
+	// Centre around origin 
+	//
+	float xoff = (xmax+xmin)/2;
+	float yoff = (ymax+ymin)/2;
+	float zoff = (zmax+zmin)/2;
+	// std::cout << "offsets: " << xoff << " " << yoff << " " << zoff << std::endl;
+
+	for (int i=0; i<s; i++){
+		cloud->points[i].x -= xoff;
+		cloud->points[i].y -= yoff;
+		cloud->points[i].z -= zoff;
+	}
+
+	
+	// Find the redius size
+	// std::cout << " " << xmax << " " << xmin << " "<< ymax <<" "<< ymin << " " << zmax << " " << zmin << std::endl;
+	float radius = std::max({xmax-xmin, ymax-ymin, zmax-zmin})/2;
+	// std::cout << "Using a radius of size: " << radius << std::endl;
+
+	return radius;
 }

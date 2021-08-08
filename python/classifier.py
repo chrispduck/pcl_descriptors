@@ -12,24 +12,48 @@ from compute_cmesf import compute_centroid_index
 import pandas as pd
 from python import classifier_helpers as h
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--train-dir", default="../descriptors/single/vision/real/filtered_chopped/train/")
+    p.add_argument(
+        "--train-dir",
+        default="../descriptors/single/vision/real/filtered_chopped/train/",
+    )
     p.add_argument("--test-dir", default="../descriptors/tactile_split3/filtered/")
     p.add_argument("--descriptor-type", default="esf", help="One of [cmesf, esf, shot]")
-    p.add_argument("--cats", default=["baseball", "beer", "camera_box", "golf_ball", "orange", "pack_of_cards", "rubix_cube", "shampoo", "spam", "tape"])
-    p.add_argument("--n-test-samples", default=3, help="Number of test samples per object")
+    p.add_argument(
+        "--cats",
+        default=[
+            "baseball",
+            "beer",
+            "camera_box",
+            "golf_ball",
+            "orange",
+            "pack_of_cards",
+            "rubix_cube",
+            "shampoo",
+            "spam",
+            "tape",
+        ],
+    )
+    p.add_argument(
+        "--n-test-samples", default=3, help="Number of test samples per object"
+    )
     args = p.parse_args()
 
     assert args.descriptor_type in ["cmesf", "esf", "shot"]
 
     # Load training data
-    X_train, Y_train = h.load_training_data(folder=args.train_dir, cats=args.cats, descriptor_type=args.descriptor_type)
+    X_train, Y_train = h.load_training_data(
+        folder=args.train_dir, cats=args.cats, descriptor_type=args.descriptor_type
+    )
     print(X_train.shape, Y_train.shape)
     # Load test data
-    X_test, Y_test = h.load_test_data(folder=args.test_dir, cats=args.cats, n_samples=args.n_test_samples, descriptor_type=args.descriptor_type)
+    X_test, Y_test = h.load_test_data(
+        folder=args.test_dir,
+        cats=args.cats,
+        n_samples=args.n_test_samples,
+        descriptor_type=args.descriptor_type,
+    )
     print(X_test.shape, Y_test.shape)
 
     # Standardisation
@@ -46,11 +70,11 @@ if __name__ == '__main__':
     model.fit(X_train, Y_train)
 
     # Evaluate Classifier
-    classifier_types, accuracies = h.evaluate(x_train=X_train, y_train=Y_train, x_test=X_test, y_test=Y_test)
+    classifier_types, accuracies = h.evaluate(
+        x_train=X_train, y_train=Y_train, x_test=X_test, y_test=Y_test
+    )
     print(classifier_types, accuracies)
 
     # Save results
 
     # (optional) plot graph
-
-

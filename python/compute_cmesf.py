@@ -41,9 +41,16 @@ def load_ESF(esf_path: str) -> pd.DataFrame:
 
 
 # Load SHOT descriptor
-def load_SHOT(shot_path: str, pc_path: str) -> pd.DataFrame:
+# Assumes the shot descriptor loaded is Nx353
+# if use last point is true, the desired descriptor is the Nth
+# returns a feature of shape 1x640, as per natale et al.
+def load_SHOT(shot_path: str, pc_path: str, use_last_point=True) -> pd.DataFrame:
     dm_shot = pd.read_csv(shot_path, header=None)
-    idx = compute_centroid_index(pc_path)  # SHOT descriptor closest to the centroid
+    if not use_last_point:
+        print("Finding SHOT descriptor from point closest to centroid")
+        idx = compute_centroid_index(pc_path)  # SHOT descriptor closest to the centroid
+    else:
+        idx = -1
     dv_closest_shot = dm_shot.iloc[idx, :]
     assert dv_closest_shot.shape == (353,)
 
@@ -102,10 +109,7 @@ if __name__ == "__main__":
         help="Directory which contains csv files",
     )
     argp.add_argument(
-        "--verbose",
-        type=bool,
-        default=False,
-        help="Enable to toggle printing"
+        "--verbose", type=bool, default=False, help="Enable to toggle printing"
     )
     args = argp.parse_args()
 

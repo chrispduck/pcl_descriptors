@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DATASET_DIR=../python/datasets
+DATASET_DIR=../datasets
 LEN_DATASET_DIR=${#DATASET_DIR}
 
 ESF_EXECUTABLE=../build/compute_esf

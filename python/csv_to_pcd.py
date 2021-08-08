@@ -4,6 +4,7 @@ import open3d as o3d
 import os
 import tqdm
 
+
 def convert_to_pcd(arr: np.array, fname: str):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(arr)

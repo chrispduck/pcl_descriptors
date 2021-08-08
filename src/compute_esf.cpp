@@ -5,6 +5,7 @@ typedef pcl::PointXYZ PointType;
 typedef pcl::ESFSignature640 DescriptorType;
 
 void saveDescriptors(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, std::string filename);
+float centre(pcl::PointCloud<PointType>::Ptr cloud);
 
 int main(int argc, char *argv[])
 {   
@@ -32,10 +33,11 @@ int main(int argc, char *argv[])
 
     std::string fname = argv[2];
 
+    centre(model);
     ESF.setInputCloud(model);
     ESF.compute(*model_descriptors);
 
-    std::cout << "Number of K neighbours %" << ESF.getKSearch() << std::endl;
+    // std::cout << "Number of K neighbours %" << ESF.getKSearch() << std::endl;
     // std::cout << "Search radius " << ESF.getRadiusSearch() << std::endl;
     // std::cout << "Search method " << ESF.getSearchMethod() << std::endl;
     // std::cout << "Search parameter " << ESF.getSearchParameter() << std::endl;
@@ -51,11 +53,70 @@ void saveDescriptors(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, std
 	{
 		for (int j = 0; j < 640; j++ ) {
             myfile << model_descriptors->points[i].histogram[j] << ",";
-            if ((j+1)%64 == 0){
-                myfile << "\n";
-            }
+            // if ((j+1)%64 == 0){
+            //     myfile << "\n";
+            // }
         }
 		myfile << "\n";
 	}
 	myfile.close();
+}
+
+// Centres a pointcloud around the origin
+// returns the maximum distance of a point from the origin.
+float centre(pcl::PointCloud<PointType>::Ptr cloud){
+	//
+	// Compute radius
+	//
+
+	PointType p;
+	float xmax, xmin, ymax, ymin, zmax, zmin;
+	xmax = p.x; xmin = p.x;
+	ymax = p.y; ymin = p.y;
+	zmax = p.z; zmin = p.z;
+	int s = cloud->size();
+	// std::cout << s << std::endl;
+	for (int i=1; i<s; i++){
+		p = cloud->points[i];
+		if (p.x > xmax){
+			xmax=p.x;
+		}
+		if (p.y > ymax){
+			ymax=p.y;
+		}
+		if (p.z > zmax){
+			zmax=p.z;
+		}
+		if (p.x < xmin){
+			xmin=p.x;
+		}
+		if (p.y < ymin){
+			ymin=p.y;
+		}
+		if (p.z < zmin){
+			zmin=p.z;
+		}
+	}
+	
+	// 
+	// Centre around origin 
+	//
+	float xoff = (xmax+xmin)/2;
+	float yoff = (ymax+ymin)/2;
+	float zoff = (zmax+zmin)/2;
+	// std::cout << "offsets: " << xoff << " " << yoff << " " << zoff << std::endl;
+
+	for (int i=0; i<s; i++){
+		cloud->points[i].x -= xoff;
+		cloud->points[i].y -= yoff;
+		cloud->points[i].z -= zoff;
+	}
+
+	
+	// Find the redius size
+	// std::cout << " " << xmax << " " << xmin << " "<< ymax <<" "<< ymin << " " << zmax << " " << zmin << std::endl;
+	float radius = std::max({xmax-xmin, ymax-ymin, zmax-zmin})/2;
+	// std::cout << "Using a radius of size: " << radius << std::endl;
+
+	return radius;
 }
