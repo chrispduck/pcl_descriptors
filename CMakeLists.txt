@@ -18,6 +18,6 @@ set(
 )
 
 foreach(example ${EXAMPLES})
-    add_executable(${example}  ${example}.cpp )
+    add_executable(${example}  src/${example}.cpp )
     target_link_libraries(${example} ${PCL_LIBRARIES} -lpthread)
 endforeach()

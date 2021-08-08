@@ -1,5 +1,5 @@
 build/
-test/
+datasets/test/
 .vscode
 .DS_STORE
 datasets
