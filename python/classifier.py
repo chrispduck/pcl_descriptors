@@ -16,10 +16,10 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument(
         "--train-dir",
-        default="../descriptors/single/vision/real/filtered_chopped/train/",
+        default="../descriptors/single/vision/real/filtered_chopped/augmented/",
     )
     p.add_argument("--test-dir", default="../descriptors/tactile_split3/filtered/")
-    p.add_argument("--descriptor-type", default="esf", help="One of [cmesf, esf, shot]")
+    p.add_argument("--descriptor-type", default="shot", help="One of [cmesf, esf, shot]")
     p.add_argument(
         "--cats",
         default=[
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         ],
     )
     p.add_argument(
-        "--n-test-samples", default=3, help="Number of test samples per object"
+        "--n-test-samples", default=200, help="Number of test samples per object"
     )
     args = p.parse_args()
 

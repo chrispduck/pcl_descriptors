@@ -17,9 +17,17 @@ def load_test_data(
             for j in range(n_samples):
                 fname = folder + cat + str(j) + "_" + descriptor_type + ".csv"
                 # print(fname)
-                feature = pd.read_csv(fname, sep=",", header=None).stack()
+                feature = pd.read_csv(fname, sep=",", header=None)
                 feature.reset_index(drop=True, inplace=True)
-                X = np.concatenate([X, feature.to_numpy().reshape(1, 640)])
+                arr = feature.to_numpy()
+                if descriptor_type.lower() == 'shot':
+                    arr = arr[-1, :].reshape(1, 353)
+                    assert arr.shape == (1, 353)
+                    arr = np.concatenate([arr, np.zeros((1, 640 - 353))], axis=1)
+                    assert arr.shape == (1, 640)
+                    arr = np.nan_to_num(arr)
+                arr.reshape(1, 640)
+                X = np.concatenate([X, arr])
                 Y = np.concatenate([Y, np.array([idx])])
         else:
             raise NotImplemented
@@ -38,11 +46,19 @@ def load_training_data(
     for idx, cat in enumerate(cats):
         fname = folder + cat + "_" + descriptor_type + ".csv"
         # print(fname)
-        feature = pd.read_csv(fname, sep=",", header=None).stack()
+        feature = pd.read_csv(fname, sep=",", header=None)
         feature.reset_index(drop=True, inplace=True)
-
+        arr = feature.to_numpy()
+        if descriptor_type.lower() == 'shot':
+            arr = arr[-1, :].reshape(1, 353)
+            assert arr.shape == (1, 353)
+            arr = np.concatenate([arr, np.zeros((1, 640-353))], axis=1)
+            assert arr.shape == (1, 640)
+            arr = np.nan_to_num(arr)
+        arr.reshape(1, 640)
+        print(arr.shape)
         # feature = np.loadtxt(fname, delimiter=',')
-        X = np.concatenate([X, feature.to_numpy().reshape(1, 640)])
+        X = np.concatenate([X, arr])
         Y = np.concatenate([Y, np.array([idx])])
     return X, Y
 

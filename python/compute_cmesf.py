@@ -128,8 +128,11 @@ if __name__ == "__main__":
         # print(shot_list, esf_list)
         while shot_list and esf_list:
             shot_name = shot_list.pop()  # e.g. baseball1_shot.csv
-            object_name = shot_name.split("_")[0]  # e.g. baseball1
+            shot_ext = "_shot.esf"
+            object_name = shot_name[:-len(shot_ext)]  # e.g. baseball1
             esf_name = object_name + "_esf.csv"  # baseball1_esf.csv
+            # print(esf_name)
+            # print(esf_list)
             esf_list.remove(esf_name)  # definitely both present
 
             shot_path = root + "/" + shot_name

@@ -1,13 +1,14 @@
 #!/bin/bash
 
-DATASET_DIR=../datasets
+#DATASET_DIR=../datasets
+DATASET_DIR=../datasets/single/vision/real/filtered_chopped/augmented
 LEN_DATASET_DIR=${#DATASET_DIR}
 
 ESF_EXECUTABLE=../build/compute_esf
 SHOT_EXECUTABLE=../build/compute_shot
 #echo $LEN_DATASET_DIR
 
-OUTDIR=../descriptors/
+OUTDIR=../descriptors/single/vision/real/filtered_chopped/augmented/
 mkdir $OUTDIR
 find  $DATASET_DIR -print0 | while IFS= read -r -d '' file
 do 
