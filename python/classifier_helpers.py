@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from typing import List, Tuple
+from tqdm import tqdm
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -26,6 +27,8 @@ def load_test_data(
                     arr = np.concatenate([arr, np.zeros((1, 640 - 353))], axis=1)
                     assert arr.shape == (1, 640)
                     arr = np.nan_to_num(arr)
+                if descriptor_type.lower() == 'esf' and arr.shape[1] == 641:
+                    arr = arr[:, :-1]
                 arr.reshape(1, 640)
                 X = np.concatenate([X, arr])
                 Y = np.concatenate([Y, np.array([idx])])
@@ -38,28 +41,52 @@ def load_test_data(
 
 
 def load_training_data(
-    folder: str, cats: List[str], descriptor_type: str
-) -> Tuple[np.ndarray, np.ndarray]:
+    folder: str, cats: List[str], descriptor_type: str,
+n_samples=1) -> Tuple[np.ndarray, np.ndarray]:
     X = np.array([[]], dtype=float).reshape(0, 640)
     Y = np.array([], dtype=float).reshape(0)
 
-    for idx, cat in enumerate(cats):
-        fname = folder + cat + "_" + descriptor_type + ".csv"
-        # print(fname)
-        feature = pd.read_csv(fname, sep=",", header=None)
-        feature.reset_index(drop=True, inplace=True)
-        arr = feature.to_numpy()
-        if descriptor_type.lower() == 'shot':
-            arr = arr[-1, :].reshape(1, 353)
-            assert arr.shape == (1, 353)
-            arr = np.concatenate([arr, np.zeros((1, 640-353))], axis=1)
-            assert arr.shape == (1, 640)
-            arr = np.nan_to_num(arr)
-        arr.reshape(1, 640)
-        print(arr.shape)
-        # feature = np.loadtxt(fname, delimiter=',')
-        X = np.concatenate([X, arr])
-        Y = np.concatenate([Y, np.array([idx])])
+    if n_samples == 1:
+        for idx, cat in enumerate(cats):
+            fname = folder + cat + "_" + descriptor_type + ".csv"
+            # print(fname)
+            feature = pd.read_csv(fname, sep=",", header=None)
+            feature.reset_index(drop=True, inplace=True)
+            arr = feature.to_numpy()
+            if descriptor_type.lower() == 'shot':
+                arr = arr[-1, :].reshape(1, 353)
+                assert arr.shape == (1, 353)
+                arr = np.concatenate([arr, np.zeros((1, 640-353))], axis=1)
+                assert arr.shape == (1, 640)
+                arr = np.nan_to_num(arr)
+            arr.reshape(1, 640)
+            print(arr.shape)
+            # feature = np.loadtxt(fname, delimiter=',')
+            X = np.concatenate([X, arr])
+            Y = np.concatenate([Y, np.array([idx])])
+    elif n_samples > 1:
+        for idx, cat in tqdm(enumerate(cats)):
+            for i in range(n_samples):
+                fname = folder + cat + str(i).zfill(4) + "_" + descriptor_type + ".csv"
+                # print(fname)
+                feature = pd.read_csv(fname, sep=",", header=None)
+                feature.reset_index(drop=True, inplace=True)
+                arr = feature.to_numpy()
+                if descriptor_type.lower() == 'shot':
+                    arr = arr[-1, :].reshape(1, 353)
+                    assert arr.shape == (1, 353)
+                    arr = np.concatenate([arr, np.zeros((1, 640 - 353))], axis=1)
+                    assert arr.shape == (1, 640)
+                    arr = np.nan_to_num(arr)
+                if descriptor_type.lower() == 'esf':
+                    arr = arr[:, :-1]
+                    # print(arr.shape)
+                    arr.reshape((1, 640))
+                # feature = np.loadtxt(fname, delimiter=',')
+                arr.reshape((1, 640))
+                X = np.concatenate([X, arr])
+                Y = np.concatenate([Y, np.array([idx])])
+    print(X.shape, Y.shape)
     return X, Y
 
 
@@ -75,12 +102,14 @@ def evaluate(
         5,
         7,
     ]:
+        print("Performing K-NN: ", k)
         model = KNeighborsClassifier(n_neighbors=k)
         model.fit(x_train, y_train)
         ypredict = model.predict(x_test)
         accuracy = (ypredict == y_test).mean()
         accuracies.append(accuracy)
 
+    print("Performing SVN", k)
     # SVN with radial basis function
     model = SVC()  # RBF kernel is default
     model.fit(x_train, y_train)

@@ -19,7 +19,7 @@ if __name__ == "__main__":
         default="../descriptors/single/vision/real/filtered_chopped/augmented/",
     )
     p.add_argument("--test-dir", default="../descriptors/tactile_split3/filtered/")
-    p.add_argument("--descriptor-type", default="shot", help="One of [cmesf, esf, shot]")
+    p.add_argument("--descriptor-type", default="cmesf", help="One of [cmesf, esf, shot]")
     p.add_argument(
         "--cats",
         default=[
@@ -36,17 +36,23 @@ if __name__ == "__main__":
         ],
     )
     p.add_argument(
-        "--n-test-samples", default=200, help="Number of test samples per object"
+        "--n-train-samples", default=200, help="Number of test samples per object"
+    )
+    p.add_argument(
+        "--n-test-samples", default=3, help="Number of test samples per object"
     )
     args = p.parse_args()
 
     assert args.descriptor_type in ["cmesf", "esf", "shot"]
 
     # Load training data
+    print("Loading training data")
     X_train, Y_train = h.load_training_data(
-        folder=args.train_dir, cats=args.cats, descriptor_type=args.descriptor_type
+        folder=args.train_dir, cats=args.cats, descriptor_type=args.descriptor_type, n_samples=args.n_train_samples
     )
     print(X_train.shape, Y_train.shape)
+
+    print("Loading test data")
     # Load test data
     X_test, Y_test = h.load_test_data(
         folder=args.test_dir,
