@@ -35,6 +35,7 @@ def test_compute_centroid():
 def load_ESF(esf_path: str) -> pd.DataFrame:
     dm_esf = pd.read_csv(esf_path, header=None)
     dv_esf = pd.DataFrame(dm_esf.stack())
+    print(dv_esf)
     assert dv_esf.shape == (640, 1)
     dv_esf.reset_index(drop=True, inplace=True)
     return dv_esf
@@ -53,7 +54,7 @@ def load_SHOT(shot_path: str, pc_path: str, use_last_point=True) -> pd.DataFrame
         idx = -1
     dv_closest_shot = dm_shot.iloc[idx, :]
     assert dv_closest_shot.shape == (353,)
-
+    print(dv_closest_shot)
     zeros = pd.DataFrame(np.zeros((640 - 353)))
     dv_closest_shot_padded = pd.concat([dv_closest_shot, zeros])
     assert dv_closest_shot_padded.shape == (640, 1)
@@ -90,6 +91,7 @@ def process(esf_path: str, shot_path: str, pc_path: str, cmesf_path: str):
     esf = load_ESF(esf_path=esf_path)
     assert esf.shape == (640, 1)
     cmesf = create_CMESF(shot, esf)
+    cmesf = cmesf.reshape(1, 640)
     np.savetxt(cmesf_path, cmesf, delimiter=",")
 
 
@@ -125,7 +127,7 @@ if __name__ == "__main__":
         r_esf = re.compile(".*_esf.csv")
         shot_list = list(filter(r_shot.match, files))
         esf_list = list(filter(r_esf.match, files))
-        # print(shot_list, esf_list)
+        print(shot_list, esf_list)
         while shot_list and esf_list:
             shot_name = shot_list.pop()  # e.g. baseball1_shot.csv
             shot_ext = "_shot.esf"
@@ -155,4 +157,4 @@ if __name__ == "__main__":
 
         if args.verbose:
             print(shot_list, esf_list)
-        assert len(shot_list) == 0 and len(esf_list) == 0
+        # assert len(shot_list) == 0 and len(esf_list) == 0

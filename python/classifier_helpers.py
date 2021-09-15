@@ -1,5 +1,8 @@
 import numpy as np
 import pandas as pd
+import os
+import re
+
 from typing import List, Tuple
 from tqdm import tqdm
 
@@ -38,7 +41,6 @@ def load_test_data(
     print(X.shape, Y.shape)
     assert (X.shape[1] == 640) and (Y.shape == (X.shape[0],))
     return X, Y
-
 
 def load_training_data(
     folder: str, cats: List[str], descriptor_type: str,
@@ -118,3 +120,58 @@ def evaluate(
     accuracies.append(accuracy)
     assert len(accuracies) == 4
     return models, accuracies
+
+
+def load_data(dataset_dir: str, re_pattern: str, d_length)-> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, list]:
+    categories = []
+    X_train = np.array([[]], dtype=float).reshape(0, d_length)
+    Y_train = np.array([], dtype=float).reshape(0)
+    X_test = np.array([[]], dtype=float).reshape(0, d_length)
+    Y_test = np.array([], dtype=float).reshape(0)
+    print("walking dir: ", dataset_dir)
+    for dirpath, _, filenames in os.walk(dataset_dir, topdown=True):
+        print(dirpath, filenames)
+        # if there are files
+        if filenames:
+            dir_split = dirpath.split('/')
+            train_test = dir_split[-1] #train or test
+            print(train_test, dirpath, filenames)
+            assert train_test in ['train', 'test']
+            object_name = dir_split[-2]
+            if object_name not in categories:
+                print(object_name, dirpath)
+                categories.append(object_name)
+            for filename in filenames:
+                print(filename)
+                if re.search(re_pattern, filename):
+                    # load and append
+                    print(filename)
+                    arr = np.loadtxt(dirpath + '/' + filename, delimiter=",", usecols=range(d_length))
+                    print(arr.shape)
+                    arr = arr.reshape(1,d_length)
+                    assert arr.shape == (1, d_length)
+                    # arr.reset_index(drop=True, inplace=True)
+                    print(arr.shape)
+
+                    idx = categories.index(object_name)
+                    print(object_name, idx)
+                    if train_test == 'train':
+                        X_train = np.concatenate([X_train, arr])
+                        Y_train = np.concatenate([Y_train, np.array([idx])]) 
+                    elif train_test == 'test':
+                        X_test = np.concatenate([X_test, arr])
+                        Y_test = np.concatenate([Y_test, np.array([idx])]) 
+    
+    return X_train, Y_train, X_test, Y_test, categories
+            
+                
+
+
+
+        
+if __name__ == '__main__':
+    print("hello")
+    X_train, Y_train, X_test, Y_test, cats = load_data("/Users/chrisparsons/Desktop/pcl_test/descriptors/practice_dataset/", "esf", d_length=640)
+    print(X_train.shape, Y_train.shape, X_test.shape, Y_test.shape, cats)
+    print(cats)
+    print(Y_test)

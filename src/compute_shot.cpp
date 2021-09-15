@@ -22,7 +22,9 @@ typedef pcl::Normal NormalType;
 typedef pcl::ReferenceFrame RFType;
 typedef pcl::SHOT352 DescriptorType;
 
+float findRadius(pcl::PointCloud<PointType>::Ptr cloud);
 void saveDescriptors(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, std::string filename);
+void saveFinalDescriptor(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, std::string filename);
 void saveKeyPoints(pcl::PointCloud<PointType>::Ptr model_keypoints, std::string filename);
 void invertNormals(pcl::PointCloud<NormalType>::Ptr model_normals);
 float centre(pcl::PointCloud<PointType>::Ptr cloud);
@@ -65,7 +67,7 @@ int main (int argc, char *argv[])
 	std::string descriptors_fname = argv[3];
 	
 	// Centre the poindcloud
-	float radius = centre(model);
+	// float radius = centre(model);
 	// Put in a point at the origin and use the resultants shot descriptor as the GLOBAL descriptor.
 	// std::cout << model->size() << std::endl;
 	model->emplace_back(0,0,0);
@@ -99,7 +101,11 @@ int main (int argc, char *argv[])
 	// //pcl::PointCloud<RFType>::Ptr model_rf (new pcl::PointCloud<RFType> ());
 	// //descr_est.setInputReferenceFrames(model_rf);
 	pcl::SHOTEstimationOMP<PointType, NormalType, DescriptorType> descr_est;
-	descr_est.setRadiusSearch (radius+0.1); // Use radius of maximimum distance from origin + const to ensure all included. 
+	// descr_est.();
+	// SHOT Does not work with seach method set to k-neighborhood
+	float radius = findRadius(model);
+	descr_est.setRadiusSearch (radius); // Use radius of maximimum distance from origin + const to ensure all included. 
+	// descr_est.setKSearch(model->size()-1);
 	descr_est.setInputCloud (model);
 	descr_est.setInputNormals (model_normals);
 	descr_est.setSearchSurface (model);
@@ -107,7 +113,7 @@ int main (int argc, char *argv[])
 	// std::cout << "Descr size: " << model_descriptors->size() << "\n";
 	//std::cout << "Descr ref frame: " << *descr_est.getInputReferenceFrames() << "\n End\n";
 	//std::cout << "Descr ref frame: " << model_descriptors->points[0] << "\n";
-	saveDescriptors(model_descriptors, descriptors_fname + ".csv");
+	saveFinalDescriptor(model_descriptors, descriptors_fname + ".csv");
 
 	#if 0
 	// Visualize
@@ -127,7 +133,7 @@ int main (int argc, char *argv[])
 	//pcl::visualization::PointCloudColorHandlerCustom<PointType> model_keypoints_color_handler (partial_model_keypoints, 0, 0, 255);
     viewer.addPointCloud (partial_model_keypoints, model_keypoints_color_handler, "partial_" + name + "_keypoints",v2);
 	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, "partial_" + name + "_keypoints",v2);
-	
+	d
 	while (!viewer.wasStopped ())
 	{
 		viewer.spinOnce ();
@@ -144,6 +150,17 @@ void saveDescriptors(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, std
 		for (int j = 0; j < 352; j++ ) myfile << model_descriptors->points[i].descriptor[j] << ",";
 		myfile << "\n";
 	}
+	myfile.close();
+}
+
+// Save the last SHOT descriptor computed. Associated with the final point in the pc array.
+void saveFinalDescriptor(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, std::string filename)
+{
+	std::ofstream myfile;
+	myfile.open (filename);
+
+	for (int j = 0; j < 352; j++ ) myfile << model_descriptors->points[model_descriptors->size()-1].descriptor[j] << ",";
+	myfile << "\n";
 	myfile.close();
 }
 
@@ -179,6 +196,7 @@ float centre(pcl::PointCloud<PointType>::Ptr cloud){
 
 	PointType p;
 	float xmax, xmin, ymax, ymin, zmax, zmin;
+	p = cloud->points[0];
 	xmax = p.x; xmin = p.x;
 	ymax = p.y; ymin = p.y;
 	zmax = p.z; zmin = p.z;
@@ -226,5 +244,32 @@ float centre(pcl::PointCloud<PointType>::Ptr cloud){
 	float radius = std::max({xmax-xmin, ymax-ymin, zmax-zmin})/2;
 	// std::cout << "Using a radius of size: " << radius << std::endl;
 
+	return radius;
+}
+
+float findRadius(pcl::PointCloud<PointType>::Ptr cloud){
+	//
+	// Compute radius
+	//
+
+	PointType p;
+	float xmax, ymax, zmax;
+	xmax=0;ymax=0;zmax=0;
+
+	for (int i=0; i<cloud->size(); i++){
+		p = cloud->points[i];
+		if (abs(p.x) > xmax){
+			xmax=p.x;
+		}
+		if (abs(p.y) > ymax){
+			ymax=p.y;
+		}
+		if (abs(p.z) > zmax){
+			zmax=p.z;
+		}
+
+	}
+
+	float radius = std::max({xmax, ymax, zmax});
 	return radius;
 }

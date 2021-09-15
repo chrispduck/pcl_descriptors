@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     std::string fname = argv[2];
 
-    centre(model);
+    // centre(model);
     ESF.setInputCloud(model);
     ESF.compute(*model_descriptors);
 

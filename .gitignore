@@ -3,6 +3,7 @@ datasets/test/
 .vscode
 .DS_STORE
 datasets
+practice_dataset
 descriptors
 .IDEA
 __pycache__

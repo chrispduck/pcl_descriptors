@@ -1,0 +1,1 @@
+bash compute_all_descriptors.bash ../datasets ../descriptors/
