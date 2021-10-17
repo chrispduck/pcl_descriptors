@@ -15,7 +15,8 @@ set(
     compute_fpfh
     keypoints_extraction
     test_icp
-)
+    voxel_MLS_filter
+    )
 
 foreach(example ${EXAMPLES})
     add_executable(${example}  src/${example}.cpp )

@@ -71,7 +71,6 @@ if __name__ == "__main__":
     # print(len(scaler.mean_))
 
     # Train Classifier
-
     model = KNeighborsClassifier(n_neighbors=7)
     model.fit(X_train, Y_train)
 

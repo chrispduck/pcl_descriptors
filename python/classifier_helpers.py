@@ -32,6 +32,9 @@ def load_test_data(
                     arr = np.nan_to_num(arr)
                 if descriptor_type.lower() == 'esf' and arr.shape[1] == 641:
                     arr = arr[:, :-1]
+                if descriptor_type.lower() == 'cmesf':
+                    arr = arr.transpose()
+
                 arr.reshape(1, 640)
                 X = np.concatenate([X, arr])
                 Y = np.concatenate([Y, np.array([idx])])
@@ -84,6 +87,9 @@ n_samples=1) -> Tuple[np.ndarray, np.ndarray]:
                     arr = arr[:, :-1]
                     # print(arr.shape)
                     arr.reshape((1, 640))
+                if descriptor_type.lower() == 'cmesf':
+                    # print(arr.shape)
+                    arr = arr.transpose()
                 # feature = np.loadtxt(fname, delimiter=',')
                 arr.reshape((1, 640))
                 X = np.concatenate([X, arr])
