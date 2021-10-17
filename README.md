@@ -1,6 +1,10 @@
 # Natale et al. comparison
 
-## Full steps
+## Requirements
+* PCL 1.12 
+* python 3.8
+
+## Comparison
 Steps to run the comparison:
 - Place dataset at root of directory
 - Generate .pcd files for all .csv files wiht `python python/csv_to_pcd.py`. PCL only uses .pcd files.
@@ -11,6 +15,6 @@ Steps to run the comparison:
 
 ## Compute shot for one pointcloud (.pcd) file
 go inside build and run
-- cmake ..
-- make -jx (x numbers of core to speed up the compilation time)
-- /compute_shot ../baseball_0201.pcd ../test ../test .
+- `cmake ..`
+- `make -jx` (x numbers of core to speed up the compilation time)
+- `/compute_shot ../<pcd_file>.pcd ../test ../test .`
