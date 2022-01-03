@@ -1,0 +1,1 @@
+bash compute_all_descriptors.bash ../practice_dataset/keyboard ../descriptors/practice_dataset/keyboard/
